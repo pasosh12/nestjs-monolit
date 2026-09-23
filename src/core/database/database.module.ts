@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { addTransactionalDataSource, deleteDataSourceByName } from 'typeorm-transactional';
+import {
+  addTransactionalDataSource,
+  deleteDataSourceByName,
+} from 'typeorm-transactional';
 
 import { ConfigModule } from '@/core/config/config.module';
 import { ConfigService } from '@/core/config/config.service';
@@ -24,20 +27,22 @@ import { ConfigService } from '@/core/config/config.service';
         autoLoadEntities: true,
 
         migrationsTableName: 'migrations',
-        migrations: [__dirname + '/../../database/migrations/*.migration{.ts,.js}'],
+        migrations: [
+          __dirname + '/../../database/migrations/*.migration{.ts,.js}',
+        ],
         migrationsRun: String(config.get('POSTGRES_MIGRATIONS_RUN')) === 'true',
 
         synchronize: String(config.get('POSTGRES_SYNCHRONIZE')) === 'true',
         logging: String(config.get('POSTGRES_LOGGING')) === 'true',
       }),
-      async dataSourceFactory(options) {
+      async dataSourceFactory(options): Promise<DataSource> {
         if (!options) {
           throw new Error('Invalid options passed');
         }
 
         deleteDataSourceByName('default');
 
-        return addTransactionalDataSource(new DataSource(options));
+        return addTransactionalDataSource(new DataSource(options)).initialize();
       },
     }),
   ],
